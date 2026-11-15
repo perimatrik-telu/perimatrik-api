@@ -1,0 +1,62 @@
+# perimatrik-api-go
+
+Port Go (Gin + GORM) dari `perimatrik-api` (Laravel). Bisa langsung menggantikan versi Laravel:
+
+- URL `/api/v1/...`, method, dan role per endpoint sama persis.
+- Format response sama: `{ success, message, data, error_code?, meta?, errors? }`, termasuk pesan validasi Laravel (`The email field is required.` dan seterusnya).
+- Memakai database MySQL yang sama, tanpa migrasi data.
+- Token **Sanctum tetap valid** (tabel `personal_access_tokens`, format `id|token`, SHA-256), jadi user yang sedang login tidak ter-logout.
+- Password bcrypt `$2y$` kompatibel dua arah dengan Laravel.
+- File upload memakai struktur folder yang sama (`articles/`, `news/`, `galleries/`, `member-avatars/`, `avatars/`) dan URL `{APP_URL}/storage/...`.
+
+## Menjalankan
+
+```bash
+cp .env.example .env     # isi DB_*, APP_URL, STORAGE_PATH
+make run                 # atau: go run ./cmd/server
+make test
+make build               # binary di bin/perimatrik-api
+```
+
+Untuk database baru (tanpa Laravel): `mysql perimatrik < database/schema.sql`.
+
+### Migrasi dari Laravel
+
+1. Salin nilai `DB_*`, `APP_URL`, `FRONTEND_URL`, dan `BCRYPT_ROUNDS` dari `.env` Laravel.
+2. Set `STORAGE_PATH` ke `perimatrik-api/storage/app/public` (atau salin isinya) supaya file lama tetap bisa diakses.
+3. `APP_URL` harus sama dengan sebelumnya, karena URL gambar yang tersimpan di DB memakai domain itu.
+4. Arahkan reverse proxy (nginx) ke port Go. Route `/storage/*` sekarang disajikan langsung oleh aplikasi; tidak perlu symlink lagi.
+
+## Struktur
+
+```
+cmd/server/            entrypoint
+internal/config/       env (.env) loader
+internal/database/     koneksi GORM MySQL
+internal/models/       tabel + serialisasi JSON ala Eloquent
+internal/auth/         token Sanctum, bcrypt, middleware auth & role
+internal/request/      input parser (query/JSON/form/multipart, trim + empty→null)
+internal/validation/   rule ala Laravel ("required|string|max:255")
+internal/response/     envelope response + error code
+internal/storage/      disk "public" (upload, URL, hapus)
+internal/handlers/     satu file per controller Laravel
+internal/export/       export anggota xlsx/csv
+internal/router/       route, CORS, 404/405/500
+database/schema.sql    skema MySQL
+```
+
+## Perbedaan kecil dari versi Laravel
+
+- `PUT/POST /content/gallery/{id}` dan `DELETE` untuk id yang tidak ada sekarang mengembalikan 404. Sebelumnya 500 karena bug `ResponseMessage::NOT_ITEM`.
+- Beberapa response create/update menyertakan relasi lengkap (`user`, `angkatan`, `replies`). Isinya superset dari sebelumnya.
+- Ekstensi file upload yang tidak dikenal diganti sesuai isi file (mencegah file `.html` ter-upload).
+
+## Test e2e (perbandingan dengan Laravel)
+
+`e2e/run.py` menjalankan sekitar 140 request yang sama ke server Laravel dan Go, lalu membandingkan response-nya. Siapkan dua database uji dengan isi seed yang sama (`e2e/seed.sql`), jalankan kedua server ke DB masing-masing, lalu:
+
+```bash
+python3 e2e/run.py http://127.0.0.1:8101 http://127.0.0.1:8102 /tmp/hasil.json
+```
+
+Hasil terakhir: 126/139 identik. Sisanya hanya field tambahan di Go dan URL gallery yang memakai `APP_URL` alih-alih host request (di produksi keduanya sama-sama `https://api.perimatrik.org`).

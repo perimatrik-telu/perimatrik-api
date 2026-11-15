@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+
+    <meta property="og:title" content="{{.Title}}">
+    <meta property="og:description" content="{{.Description}}">
+    <meta property="og:image" content="{{.Image}}">
+    <meta property="og:url" content="{{.URL}}">
+    <meta property="og:type" content="article">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{.Title}}">
+    <meta name="twitter:description" content="{{.Description}}">
+    <meta name="twitter:image" content="{{.Image}}">
+
+    <meta http-equiv="refresh" content="0; url={{.URL}}">
+    <script>
+        window.location.replace({{.URL}});
+    </script>
+</head>
+<body>
+    <p>Mengarahkan halaman... Jika tidak dialihkan secara otomatis, <a href="{{.URL}}">klik di sini</a>.</p>
+</body>
+</html>
