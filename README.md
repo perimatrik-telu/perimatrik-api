@@ -1,62 +1,61 @@
-# perimatrik-api-go
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-Port Go (Gin + GORM) dari `perimatrik-api` (Laravel). Bisa langsung menggantikan versi Laravel:
+<p align="center">
+<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+</p>
 
-- URL `/api/v1/...`, method, dan role per endpoint sama persis.
-- Format response sama: `{ success, message, data, error_code?, meta?, errors? }`, termasuk pesan validasi Laravel (`The email field is required.` dan seterusnya).
-- Memakai database MySQL yang sama, tanpa migrasi data.
-- Token **Sanctum tetap valid** (tabel `personal_access_tokens`, format `id|token`, SHA-256), jadi user yang sedang login tidak ter-logout.
-- Password bcrypt `$2y$` kompatibel dua arah dengan Laravel.
-- File upload memakai struktur folder yang sama (`articles/`, `news/`, `galleries/`, `member-avatars/`, `avatars/`) dan URL `{APP_URL}/storage/...`.
+## About Laravel
 
-## Menjalankan
+Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-```bash
-cp .env.example .env     # isi DB_*, APP_URL, STORAGE_PATH
-make run                 # atau: go run ./cmd/server
-make test
-make build               # binary di bin/perimatrik-api
-```
+- [Simple, fast routing engine](https://laravel.com/docs/routing).
+- [Powerful dependency injection container](https://laravel.com/docs/container).
+- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
+- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
+- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
+- [Robust background job processing](https://laravel.com/docs/queues).
+- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-Untuk database baru (tanpa Laravel): `mysql perimatrik < database/schema.sql`.
+Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
-### Migrasi dari Laravel
+## Learning Laravel
 
-1. Salin nilai `DB_*`, `APP_URL`, `FRONTEND_URL`, dan `BCRYPT_ROUNDS` dari `.env` Laravel.
-2. Set `STORAGE_PATH` ke `perimatrik-api/storage/app/public` (atau salin isinya) supaya file lama tetap bisa diakses.
-3. `APP_URL` harus sama dengan sebelumnya, karena URL gambar yang tersimpan di DB memakai domain itu.
-4. Arahkan reverse proxy (nginx) ke port Go. Route `/storage/*` sekarang disajikan langsung oleh aplikasi; tidak perlu symlink lagi.
+Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
 
-## Struktur
+You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
 
-```
-cmd/server/            entrypoint
-internal/config/       env (.env) loader
-internal/database/     koneksi GORM MySQL
-internal/models/       tabel + serialisasi JSON ala Eloquent
-internal/auth/         token Sanctum, bcrypt, middleware auth & role
-internal/request/      input parser (query/JSON/form/multipart, trim + empty→null)
-internal/validation/   rule ala Laravel ("required|string|max:255")
-internal/response/     envelope response + error code
-internal/storage/      disk "public" (upload, URL, hapus)
-internal/handlers/     satu file per controller Laravel
-internal/export/       export anggota xlsx/csv
-internal/router/       route, CORS, 404/405/500
-database/schema.sql    skema MySQL
-```
+If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-## Perbedaan kecil dari versi Laravel
+## Laravel Sponsors
 
-- `PUT/POST /content/gallery/{id}` dan `DELETE` untuk id yang tidak ada sekarang mengembalikan 404. Sebelumnya 500 karena bug `ResponseMessage::NOT_ITEM`.
-- Beberapa response create/update menyertakan relasi lengkap (`user`, `angkatan`, `replies`). Isinya superset dari sebelumnya.
-- Ekstensi file upload yang tidak dikenal diganti sesuai isi file (mencegah file `.html` ter-upload).
+We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
 
-## Test e2e (perbandingan dengan Laravel)
+### Premium Partners
 
-`e2e/run.py` menjalankan sekitar 140 request yang sama ke server Laravel dan Go, lalu membandingkan response-nya. Siapkan dua database uji dengan isi seed yang sama (`e2e/seed.sql`), jalankan kedua server ke DB masing-masing, lalu:
+- **[Vehikl](https://vehikl.com)**
+- **[Tighten Co.](https://tighten.co)**
+- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
+- **[64 Robots](https://64robots.com)**
+- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
+- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
+- **[Redberry](https://redberry.international/laravel-development)**
+- **[Active Logic](https://activelogic.com)**
 
-```bash
-python3 e2e/run.py http://127.0.0.1:8101 http://127.0.0.1:8102 /tmp/hasil.json
-```
+## Contributing
 
-Hasil terakhir: 126/139 identik. Sisanya hanya field tambahan di Go dan URL gallery yang memakai `APP_URL` alih-alih host request (di produksi keduanya sama-sama `https://api.perimatrik.org`).
+Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+
+## Code of Conduct
+
+In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+
+## Security Vulnerabilities
+
+If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+
+## License
+
+The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
