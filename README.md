@@ -20,6 +20,17 @@ make build               # binary di bin/perimatrik-api
 
 Untuk database baru (tanpa Laravel): `mysql perimatrik < database/schema.sql`.
 
+### File upload di Vercel: Cloudinary
+
+Gunakan `STORAGE_DRIVER=cloudinary` untuk menyimpan gambar di Cloudinary.
+URL `/storage/...` tetap tersedia dan mengarahkan browser ke CDN Cloudinary.
+Lihat [panduan konfigurasi dan pemulihan backup](docs/cloudinary.md).
+Migrasi 56 file backup bisa diperiksa tanpa upload:
+
+```bash
+go run ./cmd/migrate-media --source ./storage/app/public
+```
+
 ### TiDB Cloud / Vercel
 
 TiDB Cloud mewajibkan koneksi TLS. `DB_TLS=auto` (default) mengaktifkan TLS

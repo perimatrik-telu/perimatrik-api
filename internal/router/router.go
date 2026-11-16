@@ -41,7 +41,8 @@ func New(cfg *config.Config, h *handlers.Handler) *gin.Engine {
 	r.GET("/up", func(c *gin.Context) { c.String(200, "OK") })
 	r.GET("/share/article/:slug", h.ShareArticle)
 	r.GET("/share/news/:slug", h.ShareNews)
-	r.Static("/storage", cfg.StoragePath) // replaces the public/storage symlink
+	r.GET("/storage/*path", h.ShowImage)
+	r.HEAD("/storage/*path", h.ShowImage)
 
 	a := h.Auth
 	authed := a.Required()

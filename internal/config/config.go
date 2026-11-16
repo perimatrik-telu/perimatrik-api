@@ -23,6 +23,13 @@ type DBConfig struct {
 	TLS      string // auto, true, or false
 }
 
+type CloudinaryConfig struct {
+	CloudName string
+	APIKey    string
+	APISecret string
+	Folder    string
+}
+
 type Config struct {
 	AppEnv      string
 	AppDebug    bool
@@ -34,7 +41,9 @@ type Config struct {
 	DB DBConfig
 
 	// StoragePath is the root of the public disk (Laravel: storage/app/public).
-	StoragePath string
+	StoragePath   string
+	StorageDriver string
+	Cloudinary    CloudinaryConfig
 
 	BcryptCost  int
 	TokenPrefix string // SANCTUM_TOKEN_PREFIX
@@ -89,7 +98,14 @@ func Load() (*Config, error) {
 			Password: env("DB_PASSWORD", ""),
 			TLS:      env("DB_TLS", "auto"),
 		},
-		StoragePath: env("STORAGE_PATH", "./storage/app/public"),
+		StoragePath:   env("STORAGE_PATH", "./storage/app/public"),
+		StorageDriver: env("STORAGE_DRIVER", "local"),
+		Cloudinary: CloudinaryConfig{
+			CloudName: env("CLOUDINARY_CLOUD_NAME", ""),
+			APIKey:    env("CLOUDINARY_API_KEY", ""),
+			APISecret: env("CLOUDINARY_API_SECRET", ""),
+			Folder:    env("CLOUDINARY_FOLDER", "perimatrik"),
+		},
 		BcryptCost:  cost,
 		TokenPrefix: env("SANCTUM_TOKEN_PREFIX", ""),
 		CORSOrigins: envList("CORS_ALLOWED_ORIGINS", defaultCORSOrigins),
