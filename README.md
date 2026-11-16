@@ -36,10 +36,10 @@ dan `false`.
 
 Workflow `.github/workflows/ci-cd.yml` mengikuti pola `perimatrik-web-react`:
 
-- Push ke `main` dan pull request: vet, test, build, lalu deployment preview.
-- Push ke `production`: pemeriksaan yang sama, lalu deployment production.
-- Bisa dijalankan manual lewat tab Actions. Deployment PR dari fork dilewati.
-- URL preview ditambahkan ke komentar PR.
+- Jalankan manual lewat **Actions → CI/CD → Run workflow**, lalu pilih branch.
+- Branch `production`: vet, test, build, lalu deployment production.
+- Branch lain (termasuk `main`): pemeriksaan yang sama, lalu deployment preview.
+- Push dan pull request tidak menjalankan workflow secara otomatis.
 
 Tambahkan repository secrets di **Settings → Secrets and variables → Actions**:
 
