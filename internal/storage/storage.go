@@ -3,7 +3,10 @@
 package storage
 
 import (
+	"context"
+	"fmt"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/url"
 	"os"
@@ -11,6 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"perimatrik-api-go/internal/config"
 	"perimatrik-api-go/internal/support"
 	"perimatrik-api-go/internal/validation"
 )
@@ -27,8 +31,26 @@ const (
 var safeExt = map[string]bool{"jpg": true, "jpeg": true, "png": true, "gif": true, "svg": true, "webp": true}
 
 type Storage struct {
-	Root   string
-	AppURL string
+	Root       string
+	AppURL     string
+	cloudinary *Cloudinary
+}
+
+// New selects Cloudinary storage or the local public disk.
+func New(cfg *config.Config) (*Storage, error) {
+	s := &Storage{Root: cfg.StoragePath, AppURL: cfg.AppURL}
+	switch cfg.StorageDriver {
+	case "", "local":
+	case "cloudinary":
+		var err error
+		s.cloudinary, err = NewCloudinary(cfg.Cloudinary)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, fmt.Errorf("invalid STORAGE_DRIVER: expected local or cloudinary")
+	}
+	return s, nil
 }
 
 // Save stores an upload as {dir}/{random30}.{ext} and returns the filename.
@@ -40,14 +62,22 @@ func (s *Storage) Save(fh *multipart.FileHeader, dir string) (string, error) {
 	}
 	name := support.RandomString(30) + "." + ext
 
-	if err := os.MkdirAll(filepath.Join(s.Root, dir), 0o755); err != nil {
-		return "", err
-	}
 	src, err := fh.Open()
 	if err != nil {
 		return "", err
 	}
 	defer src.Close()
+	if s.cloudinary != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), operationTimeout)
+		defer cancel()
+		if err := s.cloudinary.Put(ctx, dir+"/"+name, src); err != nil {
+			return "", err
+		}
+		return name, nil
+	}
+	if err := os.MkdirAll(filepath.Join(s.Root, dir), 0o755); err != nil {
+		return "", err
+	}
 
 	dst, err := os.Create(filepath.Join(s.Root, dir, name))
 	if err != nil {
@@ -82,6 +112,14 @@ func (s *Storage) DeleteByURL(dir, fileURL string) {
 	}
 	base := path.Base(p)
 	if base == "." || base == "/" || base == "" {
+		return
+	}
+	if s.cloudinary != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), operationTimeout)
+		defer cancel()
+		if err := s.cloudinary.Delete(ctx, dir+"/"+base); err != nil {
+			log.Printf("storage delete: %v", err)
+		}
 		return
 	}
 	_ = os.Remove(filepath.Join(s.Root, dir, base))

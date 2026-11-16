@@ -172,12 +172,7 @@ func (h *Handler) DeleteGallery(c *gin.Context) {
 
 // ShowImage — GET /images/*path : serves a file from the public disk.
 func (h *Handler) ShowImage(c *gin.Context) {
-	p, ok := h.Storage.Resolve(c.Param("path"))
-	if !ok {
-		response.Error(c, 404, response.MsgNoItem, nil, 0)
-		return
-	}
-	c.File(p)
+	h.Storage.ServeHTTP(c.Writer, c.Request, c.Param("path"))
 }
 
 // attachUser loads the owner without re-reading the gallery row, so the

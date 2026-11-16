@@ -26,6 +26,10 @@ func main() {
 	}
 	models.Location = cfg.Location
 	models.AppURL = cfg.AppURL
+	media, err := storage.New(cfg)
+	if err != nil {
+		log.Fatalf("storage: %v", err)
+	}
 
 	db, err := database.Connect(cfg)
 	if err != nil {
@@ -36,7 +40,7 @@ func main() {
 		DB:      db,
 		Cfg:     cfg,
 		Auth:    &auth.Service{DB: db, TokenPrefix: cfg.TokenPrefix, BcryptCost: cfg.BcryptCost},
-		Storage: &storage.Storage{Root: cfg.StoragePath, AppURL: cfg.AppURL},
+		Storage: media,
 		V:       validation.New(db),
 	}
 
