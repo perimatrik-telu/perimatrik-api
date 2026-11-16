@@ -92,4 +92,4 @@ database/schema.sql    skema MySQL
 python3 e2e/run.py http://127.0.0.1:8101 http://127.0.0.1:8102 /tmp/hasil.json
 ```
 
-Hasil terakhir: 126/139 identik. Sisanya hanya field tambahan di Go dan URL gallery yang memakai `APP_URL` alih-alih host request (di produksi keduanya sama-sama `https://api.perimatrik.org`).
+Hasil terakhir: 126/139 identik. Sisanya hanya field tambahan di Go dan URL gallery yang memakai `APP_URL` alih-alih host request (di produksi keduanya sama-sama `https://perimatrik-api.vercel.app`).
