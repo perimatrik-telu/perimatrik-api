@@ -32,6 +32,27 @@ mewajibkan TLS (juga untuk hostname kustom). Redeploy setelah mengubah
 environment variables atau kode. Nilai `DB_TLS` yang didukung: `auto`, `true`,
 dan `false`.
 
+### GitHub Actions
+
+Workflow `.github/workflows/ci-cd.yml` mengikuti pola `perimatrik-web-react`:
+
+- Push ke `main` dan pull request: vet, test, build, lalu deployment preview.
+- Push ke `production`: pemeriksaan yang sama, lalu deployment production.
+- Bisa dijalankan manual lewat tab Actions. Deployment PR dari fork dilewati.
+- URL preview ditambahkan ke komentar PR.
+
+Tambahkan repository secrets di **Settings → Secrets and variables → Actions**:
+
+- `VERCEL_TOKEN`: token Vercel yang punya akses ke project API.
+- `VERCEL_ORG_ID`: `team_xeSRNm96pfc3wvNC7jb3WPHW`.
+- `VERCEL_PROJECT_ID`: `prj_tCEkI2GcmVv7fehsbKOn2PFv1Z5w` (project API).
+
+Atur environment variables aplikasi di Vercel untuk **Preview** dan
+**Production**, termasuk `DB_TLS=true` untuk TiDB dan `APP_URL` yang sesuai.
+Workflow mengambil konfigurasi lewat `vercel pull`, kemudian menjalankan
+`vercel build` dan `vercel deploy --prebuilt`. `vercel.json` menonaktifkan
+deployment dari integrasi Git agar deployment dilakukan oleh Actions.
+
 ### Migrasi dari Laravel
 
 1. Salin nilai `DB_*`, `APP_URL`, `FRONTEND_URL`, dan `BCRYPT_ROUNDS` dari `.env` Laravel.
