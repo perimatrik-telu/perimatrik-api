@@ -53,6 +53,13 @@ Workflow mengambil konfigurasi lewat `vercel pull`, kemudian menjalankan
 `vercel build` dan `vercel deploy --prebuilt`. `vercel.json` menonaktifkan
 deployment dari integrasi Git agar deployment dilakukan oleh Actions.
 
+### CORS frontend
+
+Frontend `https://perimatrik.vercel.app` diizinkan oleh konfigurasi CORS default.
+Jika `CORS_ALLOWED_ORIGINS` diatur di Vercel, nilainya menggantikan daftar
+default; tambahkan `https://perimatrik.vercel.app` ke daftar tersebut (tanpa
+trailing slash), lalu deploy ulang API. `FRONTEND_URL` tidak mengatur izin CORS.
+
 ### Migrasi dari Laravel
 
 1. Salin nilai `DB_*`, `APP_URL`, `FRONTEND_URL`, dan `BCRYPT_ROUNDS` dari `.env` Laravel.
@@ -92,4 +99,4 @@ database/schema.sql    skema MySQL
 python3 e2e/run.py http://127.0.0.1:8101 http://127.0.0.1:8102 /tmp/hasil.json
 ```
 
-Hasil terakhir: 126/139 identik. Sisanya hanya field tambahan di Go dan URL gallery yang memakai `APP_URL` alih-alih host request (di produksi keduanya sama-sama `https://api.perimatrik.org`).
+Hasil terakhir: 126/139 identik. Sisanya hanya field tambahan di Go dan URL gallery yang memakai `APP_URL` alih-alih host request (di produksi keduanya sama-sama `https://perimatrik-api.vercel.app`).

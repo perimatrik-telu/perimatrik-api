@@ -112,6 +112,37 @@ func TestRoutesAndErrors(t *testing.T) {
 	}
 }
 
+func TestVercelFrontendCORS(t *testing.T) {
+	t.Setenv("CORS_ALLOWED_ORIGINS", "")
+	t.Setenv("CORS_ALLOWED_ORIGIN_PATTERNS", "")
+	r, _ := setup(t)
+	for _, origin := range []string{"https://perimatrik.vercel.app", "https://unrelated.vercel.app"} {
+		w := do(r, "OPTIONS", "/api/v1/content/article?page=1&limit=12", map[string]string{
+			"Origin": origin, "Access-Control-Request-Method": "GET",
+			"Access-Control-Request-Headers": "authorization,content-type",
+		})
+		if w.Code != http.StatusNoContent {
+			t.Fatalf("preflight status: %d", w.Code)
+		}
+		if origin != "https://perimatrik.vercel.app" {
+			if w.Header().Get("Access-Control-Allow-Origin") != "" {
+				t.Fatal("unrelated Vercel origin allowed")
+			}
+			continue
+		}
+		if w.Header().Get("Access-Control-Allow-Origin") != origin ||
+			w.Header().Get("Access-Control-Allow-Methods") != "GET" ||
+			w.Header().Get("Access-Control-Allow-Headers") != "authorization,content-type" ||
+			w.Header().Get("Access-Control-Allow-Credentials") != "true" {
+			t.Fatalf("frontend preflight headers: %v", w.Header())
+		}
+		w = do(r, "GET", "/", map[string]string{"Origin": origin})
+		if w.Code != http.StatusOK || w.Header().Get("Access-Control-Allow-Origin") != origin {
+			t.Fatalf("frontend GET: %d %v", w.Code, w.Header())
+		}
+	}
+}
+
 func TestMultipartInputAndFileRules(t *testing.T) {
 	var buf bytes.Buffer
 	mw := multipart.NewWriter(&buf)
