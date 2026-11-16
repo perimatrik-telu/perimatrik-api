@@ -20,6 +20,7 @@ type DBConfig struct {
 	Name     string
 	User     string
 	Password string
+	TLS      string // auto, true, or false
 }
 
 type Config struct {
@@ -85,6 +86,7 @@ func Load() (*Config, error) {
 			Name:     env("DB_DATABASE", "perimatrik"),
 			User:     env("DB_USERNAME", "root"),
 			Password: env("DB_PASSWORD", ""),
+			TLS:      env("DB_TLS", "auto"),
 		},
 		StoragePath: env("STORAGE_PATH", "./storage/app/public"),
 		BcryptCost:  cost,

@@ -20,6 +20,18 @@ make build               # binary di bin/perimatrik-api
 
 Untuk database baru (tanpa Laravel): `mysql perimatrik < database/schema.sql`.
 
+### TiDB Cloud / Vercel
+
+TiDB Cloud mewajibkan koneksi TLS. `DB_TLS=auto` (default) mengaktifkan TLS
+dengan verifikasi sertifikat dan hostname untuk `DB_HOST` berakhiran
+`.tidbcloud.com`. MySQL lokal tetap memakai koneksi tanpa TLS.
+
+Di Vercel, isi `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, dan
+`DB_PASSWORD` sesuai detail koneksi TiDB, lalu set `DB_TLS=true` untuk
+mewajibkan TLS (juga untuk hostname kustom). Redeploy setelah mengubah
+environment variables atau kode. Nilai `DB_TLS` yang didukung: `auto`, `true`,
+dan `false`.
+
 ### Migrasi dari Laravel
 
 1. Salin nilai `DB_*`, `APP_URL`, `FRONTEND_URL`, dan `BCRYPT_ROUNDS` dari `.env` Laravel.

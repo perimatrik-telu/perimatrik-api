@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 
 	"perimatrik-api-go/internal/config"
@@ -13,12 +14,37 @@ import (
 )
 
 func Connect(cfg *config.Config) (*gorm.DB, error) {
-	dsn := fmt.Sprintf(
-		"%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=true&loc=%s",
-		cfg.DB.User, cfg.DB.Password, cfg.DB.Host, cfg.DB.Port, cfg.DB.Name,
-		url.QueryEscape(cfg.Location.String()),
-	)
+	dsn, err := connectionDSN(cfg)
+	if err != nil {
+		return nil, err
+	}
 
+	return connect(cfg, dsn)
+}
+
+func connectionDSN(cfg *config.Config) (string, error) {
+	tlsMode := strings.ToLower(strings.TrimSpace(cfg.DB.TLS))
+	switch tlsMode {
+	case "", "auto":
+		host := strings.TrimSuffix(strings.ToLower(cfg.DB.Host), ".")
+		tlsMode = "false"
+		if strings.HasSuffix(host, ".tidbcloud.com") {
+			tlsMode = "true"
+		}
+	case "true", "false":
+	default:
+		return "", fmt.Errorf("invalid DB_TLS: expected auto, true, or false")
+	}
+
+	dsn := fmt.Sprintf(
+		"%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=true&loc=%s&tls=%s",
+		cfg.DB.User, cfg.DB.Password, cfg.DB.Host, cfg.DB.Port, cfg.DB.Name,
+		url.QueryEscape(cfg.Location.String()), tlsMode,
+	)
+	return dsn, nil
+}
+
+func connect(cfg *config.Config, dsn string) (*gorm.DB, error) {
 	logLevel := logger.Warn
 	if cfg.AppDebug {
 		logLevel = logger.Info
