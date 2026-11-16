@@ -53,6 +53,13 @@ Workflow mengambil konfigurasi lewat `vercel pull`, kemudian menjalankan
 `vercel build` dan `vercel deploy --prebuilt`. `vercel.json` menonaktifkan
 deployment dari integrasi Git agar deployment dilakukan oleh Actions.
 
+### CORS frontend
+
+Frontend `https://perimatrik.vercel.app` diizinkan oleh konfigurasi CORS default.
+Jika `CORS_ALLOWED_ORIGINS` diatur di Vercel, nilainya menggantikan daftar
+default; tambahkan `https://perimatrik.vercel.app` ke daftar tersebut (tanpa
+trailing slash), lalu deploy ulang API. `FRONTEND_URL` tidak mengatur izin CORS.
+
 ### Migrasi dari Laravel
 
 1. Salin nilai `DB_*`, `APP_URL`, `FRONTEND_URL`, dan `BCRYPT_ROUNDS` dari `.env` Laravel.

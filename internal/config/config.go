@@ -52,6 +52,7 @@ var defaultCORSOrigins = []string{
 	"https://news.perimatrik.org",
 	"https://dashboard.perimatrik.org",
 	"https://beta.perimatrik.org",
+	"https://perimatrik.vercel.app",
 }
 
 var defaultCORSPatterns = []string{
